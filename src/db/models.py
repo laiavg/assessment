@@ -1,7 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, ForeignKey
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
-
-engine = create_engine('sqlite:///database.db', echo=True)
+from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
@@ -17,8 +15,3 @@ class Chunk(Base):
     id = Column(Integer, primary_key=True)
     document_id = Column(Integer, ForeignKey('documents.id'))
     document = relationship('Document', back_populates='chunks')
-
-
-Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
-session = Session()

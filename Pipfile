@@ -5,6 +5,9 @@ name = "pypi"
 
 [packages]
 sqlalchemy = "*"
+uvicorn = "*"
+fastapi = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
