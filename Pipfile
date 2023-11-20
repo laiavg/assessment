@@ -8,6 +8,7 @@ sqlalchemy = "*"
 uvicorn = "*"
 fastapi = "*"
 python-dotenv = "*"
+pypdf = "*"
 
 [dev-packages]
 
