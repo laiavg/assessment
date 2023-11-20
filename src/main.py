@@ -1,11 +1,12 @@
 import os
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 
 from src.db.models import Base
+from src.splitter.splitter import split_text
 
 load_dotenv()
 
@@ -23,7 +24,14 @@ def get_db():
         db.close()
 
 
+@app.get("/")
+def run_splitter(db: Session = Depends(get_db)):
+    split_text(db)
+    # Your FastAPI route logic here
+    return {"message": "Hello, FastAPI!"}
+
+
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
