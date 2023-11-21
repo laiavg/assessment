@@ -10,6 +10,7 @@ import {
     Radio,
     RadioGroup,
     FormControlLabel,
+    CircularProgress
 } from '@mui/material';
 
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -24,6 +25,7 @@ interface FormData {
 }
 
 const UploadForm: React.FC = () => {
+    const [isLoading, setIsLoading] = useState<boolean>(false)
     const [formData, setFormData] = useState<FormData>({
         file: null,
         fileName: '',
@@ -63,9 +65,11 @@ const UploadForm: React.FC = () => {
     };
 
     const handleSubmit = (event: FormEvent) => {
+        setIsLoading(true)
         if (!formData.file) return
         event.preventDefault();
-        apiClient.upload(formData.file, formData.chunkSize, formData.chunkOverlap, formData.isSeparatorRegex).then(() => console.log('done'))
+        apiClient.upload(formData.file, formData.chunkSize, formData.chunkOverlap, formData.isSeparatorRegex)
+            .then(() => setIsLoading(false))
     };
 
     return (
@@ -154,8 +158,13 @@ const UploadForm: React.FC = () => {
 
 
                         <Grid item xs={12}>
-                            <Button type="submit" variant="contained" color="primary" fullWidth>
-                                Submit
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="primary" fullWidth
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <CircularProgress size={18} /> : 'Submit'}
                             </Button>
                         </Grid>
                     </Grid>

@@ -9,8 +9,6 @@ export const apiClient = {
         const formData = new FormData();
         formData.append('file', file);
 
-        console.log(isSeparatorRegex)
-
         if (chunkSize) formData.append('chunk_size', chunkSize.toString());
         if (chunkOverlap) formData.append('chunk_overlap', chunkOverlap.toString());
         if (isSeparatorRegex) formData.append('is_separator_regex', isSeparatorRegex.toString());
