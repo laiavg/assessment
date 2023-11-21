@@ -3,9 +3,9 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sqlalchemy.orm import Session
 
-from src.backend.db.models import Document, Chunk
-from src.backend.models import Parameters
-from src.backend.utils import save_pdf
+from backend.db.models import Document, Chunk
+from backend.models import Parameters
+from backend.utils import save_pdf
 
 
 def split_text(db: Session, file: UploadFile, parameters: Parameters):
