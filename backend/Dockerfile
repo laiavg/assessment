@@ -1,5 +1,11 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
+FROM python:3.11-slim-buster
 
-WORKDIR /src
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-COPY src/backend /app
+WORKDIR /app
+
+COPY Pipfile Pipfile.lock /app/
+RUN pip install pipenv && pipenv install --system
+
+COPY . /app/

@@ -8,9 +8,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from starlette.middleware.cors import CORSMiddleware
 
-from backend.db.models import Base
-from backend.models import Parameters, get_document_info
-from backend.core.splitter import split_text
+from db.models import Base
+from models import Parameters, get_document_info
+from core.splitter import split_text
 
 load_dotenv()
 

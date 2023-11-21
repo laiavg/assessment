@@ -1,10 +1,8 @@
-FROM node:18-alpine
+FROM node:20.2.0-bullseye-slim
 
 WORKDIR /app
 
-COPY frontend/package*.json ./
+COPY package*.json ./
 RUN npm install
 
-COPY frontend .
-
-CMD ["npm", "start"]
+COPY . /app/
