@@ -6,6 +6,7 @@ from fastapi import FastAPI, Depends, UploadFile, File, Form
 
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
+from starlette.middleware.cors import CORSMiddleware
 
 from src.backend.db.models import Base
 from src.backend.models import Parameters
@@ -18,6 +19,16 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 def get_db():
     db = Session(engine)
@@ -26,6 +37,8 @@ def get_db():
     finally:
         db.close()
 
+
+# TODO: Add Validation: Got a larger chunk overlap (54) than chunk size (34), should be smaller.
 
 @app.post("/upload")
 def run_splitter(

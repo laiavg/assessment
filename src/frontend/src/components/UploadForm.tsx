@@ -13,22 +13,23 @@ import {
 } from '@mui/material';
 
 import DeleteIcon from '@mui/icons-material/Delete';
+import {apiClient} from "../api/axios.ts";
 
 interface FormData {
     file: File | null;
     fileName: string;
-    chunkSize: number | string;
-    chunkOverlap: number | string;
-    startIndex: boolean;
+    chunkSize: number | undefined;
+    chunkOverlap: number | undefined;
+    isSeparatorRegex: boolean;
 }
 
 const UploadForm: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
         file: null,
         fileName: '',
-        chunkSize: '',
-        chunkOverlap: '',
-        startIndex: false,
+        chunkSize: undefined,
+        chunkOverlap: undefined,
+        isSeparatorRegex: false,
     });
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +51,7 @@ const UploadForm: React.FC = () => {
     };
 
     const handleRadioChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, startIndex: event.target.value === 'true' });
+        setFormData({ ...formData, isSeparatorRegex: event.target.value === 'true' });
     };
 
     const handleFileClear = () => {
@@ -62,8 +63,9 @@ const UploadForm: React.FC = () => {
     };
 
     const handleSubmit = (event: FormEvent) => {
+        if (!formData.file) return
         event.preventDefault();
-        console.log('Form Data:', formData); // TODO: Call endpoint
+        apiClient.upload(formData.file, formData.chunkSize, formData.chunkOverlap, formData.isSeparatorRegex).then(() => console.log('done'))
     };
 
     return (
@@ -126,16 +128,16 @@ const UploadForm: React.FC = () => {
                         </Grid>
 
                         <Grid item xs={12}>
-                            <Grid container alignItems="center">
-                                <Grid item xs={12} sm={3} md={3}>
-                                    <Typography variant="subtitle1">Start Index:</Typography>
+                            <Grid container alignItems="center" spacing={1}>
+                                <Grid item xs={12} sm={4} md={4}>
+                                    <Typography variant="subtitle1" textAlign="left">Separator Regex:</Typography>
                                 </Grid>
                                 <Grid item xs={12} sm={6} md={8}>
                                     <RadioGroup
                                         row
-                                        aria-label="startIndex"
-                                        name="startIndex"
-                                        value={formData.startIndex.toString()}
+                                        aria-label="isSeparatorRegex"
+                                        name="isSeparatorRegex"
+                                        value={formData.isSeparatorRegex.toString()}
                                         onChange={handleRadioChange}
                                     >
                                         <FormControlLabel
@@ -149,6 +151,7 @@ const UploadForm: React.FC = () => {
                                 </Grid>
                             </Grid>
                         </Grid>
+
 
                         <Grid item xs={12}>
                             <Button type="submit" variant="contained" color="primary" fullWidth>
