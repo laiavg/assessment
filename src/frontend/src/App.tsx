@@ -1,18 +1,17 @@
 import './App.css'
-import UploadForm from "./components/UploadForm.tsx";
-import {Route} from "@mui/icons-material";
-import {createBrowserRouter, Router, RouterProvider} from "react-router-dom";
+import UploadPage from "./pages/UploadPage.tsx";
+import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import {DataProvider} from "./contexts/DataContext.tsx";
-import Results from "./components/Results.tsx";
+import ResultsPage from "./pages/ResultsPage.tsx";
 
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <UploadForm />,
+        element: <UploadPage />,
     },
     {
         path: "/results",
-        element: <Results />,
+        element: <ResultsPage />,
     },
 ]);
 function App() {

@@ -27,7 +27,7 @@ interface FormData {
     isSeparatorRegex: boolean;
 }
 
-const UploadForm: React.FC = () => {
+const UploadPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [formData, setFormData] = useState<FormData>({
         file: null,
@@ -184,4 +184,4 @@ const UploadForm: React.FC = () => {
     );
 };
 
-export default UploadForm;
+export default UploadPage;
