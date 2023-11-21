@@ -7,9 +7,9 @@ from fastapi import FastAPI, Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 
-from src.db.models import Base
-from src.models import Parameters
-from src.splitter.splitter import split_text
+from src.backend.db.models import Base
+from src.backend.models import Parameters
+from src.backend.splitter.splitter import split_text
 
 load_dotenv()
 
