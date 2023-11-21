@@ -9,8 +9,8 @@ from sqlalchemy import create_engine
 from starlette.middleware.cors import CORSMiddleware
 
 from src.backend.db.models import Base
-from src.backend.models import Parameters
-from src.backend.splitter.splitter import split_text
+from src.backend.models import Parameters, get_document_info
+from src.backend.core.splitter import split_text
 
 load_dotenv()
 
@@ -54,9 +54,9 @@ def run_splitter(
         is_separator_regex=is_separator_regex
     )
 
-    split_text(db, file, parameters)
+    document = split_text(db, file, parameters)
 
-    return parameters
+    return get_document_info(document)
 
 
 if __name__ == "__main__":

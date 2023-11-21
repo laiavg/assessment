@@ -10,10 +10,14 @@ import {
     Radio,
     RadioGroup,
     FormControlLabel,
+    CircularProgress
 } from '@mui/material';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import {apiClient} from "../api/axios.ts";
+import {useData} from "../contexts/DataContext.tsx";
+import {useNavigate} from "react-router-dom";
+
 
 interface FormData {
     file: File | null;
@@ -23,7 +27,8 @@ interface FormData {
     isSeparatorRegex: boolean;
 }
 
-const UploadForm: React.FC = () => {
+const UploadPage: React.FC = () => {
+    const [isLoading, setIsLoading] = useState<boolean>(false)
     const [formData, setFormData] = useState<FormData>({
         file: null,
         fileName: '',
@@ -31,6 +36,9 @@ const UploadForm: React.FC = () => {
         chunkOverlap: undefined,
         isSeparatorRegex: false,
     });
+
+    const navigate = useNavigate();
+    const { updateDocument } = useData();
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
         const selectedFile = event.target.files ? event.target.files[0] : null;
@@ -63,9 +71,15 @@ const UploadForm: React.FC = () => {
     };
 
     const handleSubmit = (event: FormEvent) => {
+        setIsLoading(true)
         if (!formData.file) return
         event.preventDefault();
-        apiClient.upload(formData.file, formData.chunkSize, formData.chunkOverlap, formData.isSeparatorRegex).then(() => console.log('done'))
+        apiClient.upload(formData.file, formData.chunkSize, formData.chunkOverlap, formData.isSeparatorRegex)
+            .then(document => {
+                updateDocument(document)
+                setIsLoading(false)
+                navigate('/results');
+            })
     };
 
     return (
@@ -154,8 +168,13 @@ const UploadForm: React.FC = () => {
 
 
                         <Grid item xs={12}>
-                            <Button type="submit" variant="contained" color="primary" fullWidth>
-                                Submit
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="primary" fullWidth
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <CircularProgress size={18} /> : 'Submit'}
                             </Button>
                         </Grid>
                     </Grid>
@@ -165,4 +184,4 @@ const UploadForm: React.FC = () => {
     );
 };
 
-export default UploadForm;
+export default UploadPage;

@@ -26,3 +26,5 @@ def split_text(db: Session, file: UploadFile, parameters: Parameters):
 
     db.add(document)
     db.commit()
+
+    return document
