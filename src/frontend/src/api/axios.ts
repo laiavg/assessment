@@ -13,6 +13,7 @@ export const apiClient = {
         if (chunkOverlap) formData.append('chunk_overlap', chunkOverlap.toString());
         if (isSeparatorRegex) formData.append('is_separator_regex', isSeparatorRegex.toString());
 
-        return await api.post('/upload', formData)
+        const response = await api.post<Document>('/upload', formData)
+        return response.data
     }
 }

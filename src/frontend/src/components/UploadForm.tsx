@@ -15,6 +15,9 @@ import {
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import {apiClient} from "../api/axios.ts";
+import {useData} from "../contexts/DataContext.tsx";
+import {useNavigate} from "react-router-dom";
+
 
 interface FormData {
     file: File | null;
@@ -33,6 +36,9 @@ const UploadForm: React.FC = () => {
         chunkOverlap: undefined,
         isSeparatorRegex: false,
     });
+
+    const navigate = useNavigate();
+    const { updateDocument } = useData();
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
         const selectedFile = event.target.files ? event.target.files[0] : null;
@@ -69,7 +75,11 @@ const UploadForm: React.FC = () => {
         if (!formData.file) return
         event.preventDefault();
         apiClient.upload(formData.file, formData.chunkSize, formData.chunkOverlap, formData.isSeparatorRegex)
-            .then(() => setIsLoading(false))
+            .then(document => {
+                updateDocument(document)
+                setIsLoading(false)
+                navigate('/results');
+            })
     };
 
     return (
