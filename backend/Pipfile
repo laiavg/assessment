@@ -11,6 +11,8 @@ python-dotenv = "*"
 pypdf = "*"
 langchain = "*"
 python-multipart = "*"
+celery = "*"
+redis = "*"
 
 [dev-packages]
 

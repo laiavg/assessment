@@ -23,3 +23,28 @@ services:
       - ./backend:/app
     ports:
       - "8000:8000"
+    depends_on:
+        - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379
+      - CELERY_RESULT_BACKEND=redis://redis:6379
+
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A worker.celery worker --loglevel=info
+    depends_on:
+      - backend
+      - redis
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+
+

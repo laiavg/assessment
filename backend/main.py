@@ -2,15 +2,17 @@ import os
 from typing import Annotated
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Depends, UploadFile, File, Form
+from fastapi import FastAPI, Depends, UploadFile, File, Form, Body
 
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
 
 from db.models import Base
 from models import Parameters, get_document_info
 from core.splitter import split_text
+from worker import create_task
 
 load_dotenv()
 
@@ -57,6 +59,13 @@ def run_splitter(
     document = split_text(db, file, parameters)
 
     return get_document_info(document)
+
+
+@app.post("/tasks", status_code=201)
+def run_task(payload = Body(...)):
+    task_type = payload["type"]
+    task = create_task.delay(int(task_type))
+    return JSONResponse({"task_id": task.id})
 
 
 if __name__ == "__main__":

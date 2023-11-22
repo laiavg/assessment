@@ -6,6 +6,6 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 
 COPY Pipfile Pipfile.lock /app/
-RUN pip install pipenv && pipenv install --system
+RUN pip install --upgrade pip && pip install pipenv && pipenv install --system
 
 COPY . /app/
