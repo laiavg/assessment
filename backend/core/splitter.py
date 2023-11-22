@@ -1,30 +1,29 @@
-from fastapi import UploadFile
+import os
+
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from sqlalchemy.orm import Session
 
-from db.models import Document, Chunk
+from db import Document, Chunk
 from models import Parameters
-from utils import save_pdf
 
 
-def split_text(db: Session, file: UploadFile, parameters: Parameters):
+def split_text(file_path: str, parameters, session):
 
-    path = save_pdf(file)
-    loader = PyPDFLoader(path)
+    loader = PyPDFLoader(file_path)
 
+    parameters = Parameters.model_validate_json(parameters)
     text_splitter = RecursiveCharacterTextSplitter(
         length_function=len,
         **vars(parameters)
     )
 
     pages = loader.load_and_split(text_splitter)
-    document = Document(filename=file.filename)
+    document = Document(filename=os.path.basename(file_path))
 
     for chunk in pages:
-        db.add(Chunk(text=chunk.page_content, document=document))
+        session.add(Chunk(text=chunk.page_content, document=document))
 
-    db.add(document)
-    db.commit()
+    session.add(document)
+    session.commit()
 
     return document

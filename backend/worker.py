@@ -1,14 +1,25 @@
+import json
 import os
-import time
-
 from celery import Celery
 
+from core.splitter import split_text
+from db import db_session
+
 celery = Celery(__name__)
-celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
-celery.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379")
+celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL")
+celery.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND")
 
 
-@celery.task(name="create_task")
-def create_task(task_type):
-    time.sleep(int(task_type) * 10)
-    return True
+class SqlAlchemyTask(celery.Task):
+    """An abstract Celery Task that ensures that the connection with the db is closed on task completion"""
+    abstract = True
+
+    def after_return(self, status, retval, task_id, args, kwargs, einfo): # noqa
+        db_session.remove()
+
+
+@celery.task(name="create_task", base=SqlAlchemyTask)
+def create_task(file_path, parameters):
+    with db_session() as session:
+        document = split_text(file_path, parameters, session)
+        return document.to_json()
