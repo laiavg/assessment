@@ -1,21 +1,17 @@
-import os
 from typing import Annotated
 
+from celery.result import AsyncResult
 from dotenv import load_dotenv
-from fastapi import FastAPI, Depends, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form
 
-from sqlalchemy.orm import Session
-from sqlalchemy import create_engine
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
 
-from src.backend.db.models import Base
-from src.backend.models import Parameters, get_document_info
-from src.backend.core.splitter import split_text
+from models import Parameters
+from utils import save_pdf
+from worker import create_task
 
 load_dotenv()
-
-engine = create_engine(os.getenv("DATABASE_URL"))
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -30,14 +26,6 @@ app.add_middleware(
 )
 
 
-def get_db():
-    db = Session(engine)
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 # TODO: Add Validation: Got a larger chunk overlap (54) than chunk size (34), should be smaller.
 
 @app.post("/upload")
@@ -45,18 +33,34 @@ def run_splitter(
         file: Annotated[UploadFile, File()],
         chunk_size: int = Form(default=100),
         chunk_overlap: int = Form(default=20),
-        is_separator_regex: bool = Form(default=False),
-        db: Session = Depends(get_db),
+        is_separator_regex: bool = Form(default=False)
 ):
+
+    file_path = save_pdf(file)
+
     parameters = Parameters(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
         is_separator_regex=is_separator_regex
     )
 
-    document = split_text(db, file, parameters)
+    task = create_task.delay(
+        file_path,
+        parameters.model_dump_json()
+    )
 
-    return get_document_info(document)
+    return JSONResponse({"task_id": task.id})
+
+
+@app.get("/tasks/{task_id}")
+def get_status(task_id):
+    task_result = AsyncResult(task_id)
+    result = {
+        "task_id": task_id,
+        "task_status": task_result.status,
+        "task_result": task_result.result
+    }
+    return JSONResponse(result)
 
 
 if __name__ == "__main__":

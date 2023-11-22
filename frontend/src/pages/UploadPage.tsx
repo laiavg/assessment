@@ -17,69 +17,96 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import {apiClient} from "../api/axios.ts";
 import {useData} from "../contexts/DataContext.tsx";
 import {useNavigate} from "react-router-dom";
+import {TaskStatus} from "../api/types.ts";
 
 
 interface FormData {
     file: File | null;
     fileName: string;
-    chunkSize: number | undefined;
-    chunkOverlap: number | undefined;
-    isSeparatorRegex: boolean;
+    chunkSize: string;
+    chunkOverlap: string;
+    isSeparatorRegex: string;
 }
 
 const UploadPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [formData, setFormData] = useState<FormData>({
         file: null,
         fileName: '',
-        chunkSize: undefined,
-        chunkOverlap: undefined,
-        isSeparatorRegex: false,
+        chunkSize: '',
+        chunkOverlap: '',
+        isSeparatorRegex: 'false',
     });
 
     const navigate = useNavigate();
     const { updateDocument } = useData();
 
-    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const setFile = (event: ChangeEvent<HTMLInputElement>) => {
         const selectedFile = event.target.files ? event.target.files[0] : null;
-
-        setFormData({
-            ...formData,
-            file: selectedFile,
-            fileName: selectedFile ? selectedFile.name : '',
-        });
+        setFormData({...formData, file: selectedFile, fileName: selectedFile ? selectedFile.name : ''});
     };
 
-    const handleNumericInputChange = (
+    const setInputField = (
         event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
         field: keyof FormData
     ) => {
-        const numericValue = event.target.value.replace(/\D/g, '');
-        setFormData({ ...formData, [field]: numericValue });
+        setFormData({ ...formData, [field]: event.target.value });
     };
 
-    const handleRadioChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, isSeparatorRegex: event.target.value === 'true' });
+    const setRadioField = (event: ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, isSeparatorRegex: event.target.value });
     };
 
-    const handleFileClear = () => {
-        setFormData({
-            ...formData,
-            file: null,
-            fileName: '',
-        });
+    const removeFile = () => {
+        setFormData({...formData, file: null, fileName: ''});
     };
 
-    const handleSubmit = (event: FormEvent) => {
-        setIsLoading(true)
+    const submitForm = (event: FormEvent) => {
+        event.preventDefault()
+        setErrorMessage(null)
         if (!formData.file) return
-        event.preventDefault();
+        if (!isFormValid()) return
+        setIsLoading(true)
         apiClient.upload(formData.file, formData.chunkSize, formData.chunkOverlap, formData.isSeparatorRegex)
-            .then(document => {
-                updateDocument(document)
+            .then(response => getTaskResult(response.task_id))
+            .catch(() => {
+                setErrorMessage("Form could not be submitted")
                 setIsLoading(false)
-                navigate('/results');
             })
+    };
+
+    const isFormValid = () => {
+        const numericChunkSize = parseInt(formData.chunkSize || '0', 10);
+        const numericChunkOverlap = parseInt(formData.chunkOverlap || '0', 10);
+
+        return numericChunkSize > numericChunkOverlap;
+    }
+
+    const stopPolling = (interval: number) => {
+        clearInterval(interval)
+        setIsLoading(false)
+    }
+
+    const getTaskResult = (task_id: string) => {
+        const interval = setInterval(() => {
+            apiClient.getTask(task_id)
+                .then(response => {
+                    const taskStatus = response.task_status
+                    if (taskStatus === TaskStatus.SUCCESS) {
+                        updateDocument(response.task_result)
+                        stopPolling(interval)
+                        navigate('/results');
+                    }
+                    else if (taskStatus === TaskStatus.FAILURE || taskStatus === TaskStatus.REVOKED) {
+                        stopPolling(interval)
+                    }
+                })
+                .catch(() => {
+                    setErrorMessage("The petition could not be processed");
+                    stopPolling(interval)
+                });
+        }, 2000);
     };
 
     return (
@@ -88,7 +115,7 @@ const UploadPage: React.FC = () => {
                 <Typography variant="h5" align="center" style={{ marginBottom: 20 }}>
                     Upload Form
                 </Typography>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={submitForm}>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <FormControl fullWidth>
@@ -96,7 +123,7 @@ const UploadPage: React.FC = () => {
                                     type="file"
                                     id="file"
                                     accept=".pdf"
-                                    onChange={handleFileChange}
+                                    onChange={setFile}
                                     style={{ display: 'none' }}
                                 />
                                 <label htmlFor="file">
@@ -113,7 +140,7 @@ const UploadPage: React.FC = () => {
                                     <Typography variant="body1" style={{ marginRight: 8, textAlign: 'center' }}>
                                         Selected File: {formData.fileName}
                                     </Typography>
-                                    <DeleteIcon fontSize="small" color="error" onClick={handleFileClear}/>
+                                    <DeleteIcon fontSize="small" color="error" onClick={removeFile}/>
                                 </div>
                             )}
                         </Grid>
@@ -126,7 +153,7 @@ const UploadPage: React.FC = () => {
                                 type="number"
                                 id="chunkSize"
                                 value={formData.chunkSize}
-                                onChange={(e) => handleNumericInputChange(e, 'chunkSize')}
+                                onChange={(e) => setInputField(e, 'chunkSize')}
                             />
                         </Grid>
 
@@ -137,7 +164,7 @@ const UploadPage: React.FC = () => {
                                 type="number"
                                 id="chunkOverlap"
                                 value={formData.chunkOverlap}
-                                onChange={(e) => handleNumericInputChange(e, 'chunkOverlap')}
+                                onChange={(e) => setInputField(e, 'chunkOverlap')}
                             />
                         </Grid>
 
@@ -152,7 +179,7 @@ const UploadPage: React.FC = () => {
                                         aria-label="isSeparatorRegex"
                                         name="isSeparatorRegex"
                                         value={formData.isSeparatorRegex.toString()}
-                                        onChange={handleRadioChange}
+                                        onChange={setRadioField}
                                     >
                                         <FormControlLabel
                                             value="true"
@@ -166,13 +193,20 @@ const UploadPage: React.FC = () => {
                             </Grid>
                         </Grid>
 
+                        <Grid item xs={12}>
+                            {errorMessage && (
+                                <div style={{ color: 'red' }}>
+                                    {errorMessage}
+                                </div>
+                            )}
+                        </Grid>
 
                         <Grid item xs={12}>
                             <Button
                                 type="submit"
                                 variant="contained"
                                 color="primary" fullWidth
-                                disabled={isLoading}
+                                disabled={isLoading || !formData.file || !isFormValid()}
                             >
                                 {isLoading ? <CircularProgress size={18} /> : 'Submit'}
                             </Button>

@@ -11,6 +11,9 @@ python-dotenv = "*"
 pypdf = "*"
 langchain = "*"
 python-multipart = "*"
+celery = "*"
+redis = "*"
+flower = "*"
 
 [dev-packages]
 
