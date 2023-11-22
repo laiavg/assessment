@@ -25,9 +25,6 @@ services:
       - "8000:8000"
     depends_on:
         - redis
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379
-      - CELERY_RESULT_BACKEND=redis://redis:6379
 
   redis:
     image: "redis:latest"
@@ -46,5 +43,19 @@ services:
       - .env
     volumes:
       - ./backend:/app
+
+  dashboard:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery --broker=redis://redis:6379/0 flower --port=5555
+    ports:
+      - "5556:5555"
+    env_file:
+      - .env
+    depends_on:
+      - backend
+      - redis
+      - celery
 
 
