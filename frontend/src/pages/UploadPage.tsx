@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, {useState, ChangeEvent, FormEvent, useEffect} from 'react';
 import {
     Button,
     Grid,
@@ -38,9 +38,30 @@ const UploadPage: React.FC = () => {
         chunkOverlap: '',
         isSeparatorRegex: 'false',
     });
+    const [isFormValid, setIsFormValid] = useState<boolean>(false);
 
     const navigate = useNavigate();
     const { updateDocument } = useData();
+
+    useEffect(() => {
+        const chunkSize = parseInt(formData.chunkSize || '0', 10);
+        const chunkOverlap = parseInt(formData.chunkOverlap || '0', 10);
+
+        if ((chunkSize !== 0 && chunkOverlap === 0) || (chunkSize === 0 && chunkOverlap !== 0)) {
+            setErrorMessage("Size and overlap have to be either defined or left blank")
+            setIsFormValid(false)
+            return
+        }
+
+        if (chunkSize < chunkOverlap) {
+            setErrorMessage("Chunk overlap cannot be larger than chunk size")
+            setIsFormValid(false)
+            return
+        }
+
+        setErrorMessage(null)
+        setIsFormValid(true)
+    }, [formData.chunkSize, formData.chunkOverlap])
 
     const setFile = (event: ChangeEvent<HTMLInputElement>) => {
         const selectedFile = event.target.files ? event.target.files[0] : null;
@@ -66,7 +87,7 @@ const UploadPage: React.FC = () => {
         event.preventDefault()
         setErrorMessage(null)
         if (!formData.file) return
-        if (!isFormValid()) return
+        if (!isFormValid) return
         setIsLoading(true)
         apiClient.upload(formData.file, formData.chunkSize, formData.chunkOverlap, formData.isSeparatorRegex)
             .then(response => getTaskResult(response.task_id))
@@ -75,13 +96,6 @@ const UploadPage: React.FC = () => {
                 setIsLoading(false)
             })
     };
-
-    const isFormValid = () => {
-        const numericChunkSize = parseInt(formData.chunkSize || '0', 10);
-        const numericChunkOverlap = parseInt(formData.chunkOverlap || '0', 10);
-
-        return numericChunkSize > numericChunkOverlap;
-    }
 
     const stopPolling = (interval: number) => {
         clearInterval(interval)
@@ -206,7 +220,7 @@ const UploadPage: React.FC = () => {
                                 type="submit"
                                 variant="contained"
                                 color="primary" fullWidth
-                                disabled={isLoading || !formData.file || !isFormValid()}
+                                disabled={isLoading || !formData.file || !isFormValid}
                             >
                                 {isLoading ? <CircularProgress size={18} /> : 'Submit'}
                             </Button>
