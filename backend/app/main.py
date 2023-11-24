@@ -7,9 +7,9 @@ from fastapi import FastAPI, UploadFile, File, Form
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
-from models import Parameters
-from utils import save_pdf
-from worker import create_task
+from app.models import Parameters
+from app.utils import save_pdf
+from app.worker import create_task
 
 load_dotenv()
 
