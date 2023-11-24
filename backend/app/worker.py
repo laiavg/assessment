@@ -1,9 +1,8 @@
-import json
 import os
 from celery import Celery
 
-from core.splitter import split_text
-from db import db_session
+from app.splitter import split_text
+from app.db import db_session
 
 celery = Celery(__name__)
 celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL")

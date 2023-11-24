@@ -3,8 +3,8 @@ import os
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-from db import Document, Chunk
-from models import Parameters
+from app.db import Document, Chunk
+from app.models import Parameters
 
 
 def split_text(file_path: str, parameters, session):
