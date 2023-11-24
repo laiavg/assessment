@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useData } from '../contexts/DataContext.tsx';
 import { useNavigate } from 'react-router-dom';
 import { Container, Paper, Table, TableBody, TableRow, TableCell, TableContainer, TableHead, Typography, TablePagination } from '@mui/material';
+import {Chunk, Document} from "../api/types.ts";
 
 const ResultsPage: React.FC = () => {
     const { document } = useData();
@@ -18,15 +19,15 @@ const ResultsPage: React.FC = () => {
     );
 };
 
-const ChunkList = ({ document }) => {
+const ChunkList = ({ document }: { document: Document }) => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
-    const handleChangePage = (event, newPage) => {
+    const handleChangePage = (_event: any, newPage: React.SetStateAction<number>) => {
         setPage(newPage);
     };
 
-    const handleChangeRowsPerPage = (event) => {
+    const handleChangeRowsPerPage = (event: { target: { value: string; }; }) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
@@ -46,7 +47,7 @@ const ChunkList = ({ document }) => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {document.chunks.slice(startIndex, endIndex).map((chunk) => (
+                        {document.chunks.slice(startIndex, endIndex).map((chunk: Chunk) => (
                             <TableRow key={chunk.id}>
                                 <TableCell>{chunk.id}</TableCell>
                                 <TableCell>{chunk.text}</TableCell>

@@ -1,18 +1,19 @@
 import React, { createContext, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
+import { Document } from '../api/types.ts'
 
 interface DataProviderProps {
     children: ReactNode;
 }
 
 interface DataContextType {
-    document: Document;
+    document: Document | undefined;
     updateDocument: Dispatch<SetStateAction<any>>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
-    const [document, setDocument] = React.useState<Document>(null);
+    const [document, setDocument] = React.useState<Document>();
 
     const updateResponseData: DataContextType['updateDocument'] = (data) => {
         setDocument(data);
